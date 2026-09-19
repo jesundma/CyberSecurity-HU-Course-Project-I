@@ -1,0 +1,36 @@
+{% block content %}
+
+<h2>My Loans</h2>
+
+<!-- Always visible button, even when there are no loans -->
+<p>
+    <button type="button"
+            onclick="alert('This would normally lead to a secure late fee payment page.')">
+        Pay Late Fees
+    </button>
+</p>
+
+<ul>
+    {% for loan in loans %}
+        <li>
+            {{ loan.book.title }}
+
+            {% if loan.returned %}
+                (returned)
+            {% else %}
+                (active)
+            {% endif %}
+
+            - <a href="/loan/{{ loan.id }}/">Details</a>
+
+            <button type="button"
+                    onclick="alert('This would normally lead to a secure late fee payment page.')">
+                Pay Late Fees
+            </button>
+        </li>
+    {% empty %}
+        <li>No loans</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

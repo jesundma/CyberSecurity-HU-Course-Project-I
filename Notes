@@ -1,0 +1,47 @@
+LINK: https://github.com/jesundma/Cybersecurity/tree/main/Cybersecurity_Project_I_INsecure_App
+
+Installation: create virtual environment and install required packages by pip install -r requirements.txt. Installed Requests is third-party package for making HTTP requests and is used in flaw 4. Django is assumed to be installed already but just in case also in requirements. Run migration and seeding of test database, python manage.py migrate and python manage.py seed. and the start local server. Application should start in http:/127.0.0.1:8000, do not change port. If user wish to experiment the flaws inside the app, instructions are provided at each flaw.
+
+FLAW 1: A03 SQL INJECTION (2021) / Exposing database with sql injection for search functionality
+
+https://github.com/jesundma/Cybersecurity/blob/main/Cybersecurity_Project_I_INsecure_App/library/views.py#L33
+
+SQL query is a literal string, which is interpreted strictly. With poorly structured, that is non-paramized query the query is vulrenable to injection. The search function query "SELECT id, title, author FROM library_book WHERE active = 1 AND title LIKE '" + q + "';" uses q to insert the search term to string. Demonstration setting for SQL injection is to show all books irrespective whether they are available or not for loans. In the query WHERE active = 1 indicates books that are available for loans and shows in the search.
+As query is literal string, attacker's goal is to create a search string that will alter query parameters in unintended fashion. Executing search with search term dune ' OR '1'='1 the query will turn to SELECT id, title, author FROM library_book WHERE active = 1 AND title LIKE 'dune ' OR '1'='1';. OR condition is always true, which will show all table rows irrespective of book condition.
+Wild character to seach and show all intended records is %. Executing search with wild character and a search with injection dune ' OR '1'='1 shows how the injection exposes one active = 0 row in seeded test database.
+
+SQL injection is prevented by using a parameterized query, where the SQL statement is fixed and user input is supplied separately as parameters. In this example, the query contains two parameters, value 1 for the active condition and the search string used in the LIKE condition. Unlike a non-parameterized query, user input is not concatenated into the SQL statement. Therefore, an input such as ' OR '1'='1 is treated as a literal string for the LIKE comparison instead of the SQL syntax part. As a result, the database searches for that exact text.
+
+FLAW 2: A01 Broken Access Control / development feature allowing user to change role to another user
+
+https://github.com/jesundma/Cybersecurity/blob/main/Cybersecurity_Project_I_INsecure_App/library/views.py#L73
+
+Development code may contain code that makes debugging and testing easier while in development stage to be removed from production code. This flaw demonstration is done using POST, which require that CSFR token is used in form. CSFR token will make demonstration of flaw a bit more complicated. Use of POST will only demonstrate one type of flaw instead of multiple flaws. 
+Demonstration code have a feature to change user priviledges without checking proper authorization. This line requested_user = request.POST.get("as_user") checks whether form submitted has field as_user. Field is not in frontend login.html login page but the functionality is on the backend. The field is not a problem but trusting the field without proper verification for sufficient rights is.
+Should a POST request with fields username, password, and as_user = admin with correct CSFR token be submitted a user will do a two-phase login. First legimate user is logged in as normal user but then due left-in functionality requested_user on the backend, user is able to elevate to any account provided in field as_user.
+To keep things simple demonstration for a POST with as_user field added is done by CURL. Both CSFR token and sessionid from valid login session obtained by developer tools for used browser. Valid sessionid requires user login before executing CURL POST request. Django login() calls as a in-build security feature request.session.cycle_key() that will create a new session ID. The browser still has old session ID and user is logged out as server has authenticated admin session with new session ID not matching the old one. If new session ID is saved, a new browser window is opened, and session ID replaced by new value, a new session as admin can be started.
+Vulrenability is created by development code defining as_user and allowing change of authenticated user and user's priviledges without proper authorization check. In this case the code is fixed by removing the code allowing as_user creation. Leaving this kind of development backdoor to production code is not proper production code.
+
+FLAW 3: A01 Broken Access Control / authorization to view data object is not checked
+
+https://github.com/jesundma/Cybersecurity/blob/main/Cybersecurity_Project_I_INsecure_App/library/views.py#L145
+
+Book loans by user are filtered from different Loan objects by user and only books with matching user id are shown with function My loans. Function checks that loan user id is same as the user id that made the request. In Loan details function a Loan object with matching loan id is shown but whether the Loan object has the same user id as the request making user is not. This way a Loan object is visible if correct Loan object id is added to browser address creating a new request.
+Flaw is fixed by adding to function user id check to check for authorization to view Loan object that has besides loan id a user id. For demonstration purposes the fix uses Django shortcut get_object_or_404. Attempt to view Loan object without authorization, that is request user id do not match with object user id causes 404 error.
+
+FLAW 4: A10: Server-Side Request Forgery (SSRF) / tricking the server into making an internal request on behalf of an unauthorized user
+
+https://github.com/jesundma/Cybersecurity/blob/main/Cybersecurity_Project_I_INsecure_App/library/views.py#L197
+
+User may add an URL for book review to book details and the application will provide the page content to be displayred on the book details. This URL is not validated or restricted and application will make a request (requests.get(url)). Now the request is from internal server address. This will expose server internal web pages not accessible from external ip address as server would block request from this address.Flaw could expose internal pages like administration or APIs that are accessible from the server but not from Internet. In the demonstration internal page is http://127.0.0.1:8000/internal-info. As application is run locally in same ip address, this address is reachable by typing the address to address field. Configuring a separate external address and network environment is omitted from demonstration due to the additional complexity.
+In the case of demonstration the fix is to store the URL as link to a page instead of making a request to the page. If page is truly required to be opened, then an allowlist could be generated indicating pages that are allowed to be opened. Note that as both frontend and server are running on the same machine, the internal page can be opened from the link (as the request originates internally)
+
+FLAW 5: A01 Broken Access Control (2021) / Cross-site request forgery CSFR 
+
+exact source link pinpointing flaw 5...
+
+A POST request that changes the password must include a valid CSRF token. This is build-in feature of Django, all unsafe HTTP methods like POST, PUT, PATCH, DELETE etc. are protected by this feature. Unsafe methods are protected by CSFR middleware, which is in a standard Django project created with django-admin startproject included as middleware in settings.py. This middleware also creates the forementioned CSRF tokens. For laboratory setting to demonstrate CSRF this check is disabled by decorator @csrf_exempt. Without this decorator, the forged request from the attack page would be rejected with a 403 Forbidden error.
+Another build-in feature of Django is logging the user out in case of changed password as session is invalidated for user session hash change. If django.contrib.auth.update_session_auth_hash() is called, then session hash is updated and session continues after password change. In this demonstration the attack page (/Attack Page/badboy.html) changes the password directly when page is visited. This will log out the user and naturally logging in does not succeed due to changed password. This is intentional to demonstrate CSFR attack. In production code function is usually called to allow user to continue same session after password change.
+Demonstration changes the password due to CSFR that deceive application to think that change request originated from application web page. More common attack venue instead of changing the password itself is to change the e-mail address of user and use it to reset password by attacker.
+ 
+Djanfo framework enforces CSFR protection and the protection must be intentionally turn off. To fix the backend code, decorator @csrf_exempt need to be removed. Frontend will also require a fix as unless {% csrf_token %} is added to password change form in change_password.html, attempt to change password will cause 403 error.

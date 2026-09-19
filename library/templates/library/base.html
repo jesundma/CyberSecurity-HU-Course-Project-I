@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insecure Library</title>
+</head>
+<body>
+
+    <header>
+        <h1>Insecure Library App</h1>
+
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/books/">Books</a> |
+            <a href="/loans/">My Loans</a> |
+            <a href="/search/?q=">Search</a> |
+            <a href="/change_password/">Change Password</a>
+
+            {% if user.is_authenticated %}
+                | <span>Logged in as {{ user.username }}</span>
+                | <a href="/logout/">Logout</a>
+            {% else %}
+                | <a href="/login/">Login</a>
+            {% endif %}
+        </nav>
+
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>

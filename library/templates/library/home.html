@@ -1,0 +1,26 @@
+{% extends "library/base.html" %}
+
+{% block content %}
+
+<h2>Welcome to the Insecure Library</h2>
+
+<p>
+    This is the home page of the library application.
+</p>
+
+<p>
+    Use the navigation menu above to browse books,
+    manage your loans, or search the catalog.
+</p>
+
+{% if user.is_authenticated %}
+    <p>
+        You are currently logged in as <strong>{{ user.username }}</strong>.
+    </p>
+{% else %}
+    <p>
+        Please <a href="/login/">log in</a> to manage your loans.
+    </p>
+{% endif %}
+
+{% endblock %}

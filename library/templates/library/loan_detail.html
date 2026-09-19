@@ -1,0 +1,15 @@
+{% extends "library/base.html" %}
+
+{% block content %}
+
+<h2>Loan Details</h2>
+
+<p><b>Book:</b> {{ loan.book.title }}</p>
+<p><b>User:</b> {{ loan.user.username }}</p>
+<p><b>Status:</b> {{ loan.returned }}</p>
+
+{% if not loan.returned %}
+    <p><a href="/return/{{ loan.id }}/">Return book</a></p>
+{% endif %}
+
+{% endblock %}
