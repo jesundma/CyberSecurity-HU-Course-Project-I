@@ -102,12 +102,10 @@ def insecure_login(request):
         "error": "Login failed"
     })
 
-# ----------------------------
-# A07: INSECURE LOGOUT (OWASP 2021) Remove from final
-# ----------------------------
 def insecure_logout(request):
     
     # no confirmation, no CSRF protection, works via GET, low-impact nuisance and causes only involuntary logout
+    # left in here, but NOT to be graded
     logout(request)
     return HttpResponse("Logged out (insecure logout executed). This could be triggered by a visit to page with <img src= ""http://127.0.0.1:8000/logout/"" No Home in this page")
 
