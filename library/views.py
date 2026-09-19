@@ -131,6 +131,8 @@ def insecure_change_password(request):
         {"user": request.user},
     )
 
+
+
 def my_loans(request):
     if not request.user.is_authenticated:
         return HttpResponse("Not logged in")
