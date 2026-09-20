@@ -110,7 +110,7 @@ def insecure_logout(request):
     return HttpResponse("Logged out (insecure logout executed). This could be triggered by a visit to page with <img src= ""http://127.0.0.1:8000/logout/"" No Home in this page")
 
 
-@csrf_exempt
+csrf_exempt
 
 ## FIX: Remove @csrf_exempt, a good practice is to add @login_required decorator from django.contrib.auth.decorators import login_required
 ## FIX: Template for password change require also fix to turn CSFR token on, templates/library/change_password.html line 
