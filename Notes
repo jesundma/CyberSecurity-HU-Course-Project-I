@@ -46,3 +46,5 @@ Another build-in feature of Django is logging the user out in case of changed pa
 Demonstration changes the password due to CSFR that deceive application to think that change request originated from application web page. More common attack venue instead of changing the password itself is to change the e-mail address of user and use it to reset password by attacker.
  
 Djanfo framework enforces CSFR protection and the protection must be intentionally turn off. To fix the backend code, decorator @csrf_exempt need to be removed. Frontend will also require a fix as unless {% csrf_token %} is added to password change form in change_password.html attempt to change password will cause 403 error.
+
+Word count 1458 words.
