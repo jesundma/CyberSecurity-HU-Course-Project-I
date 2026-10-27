@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 SECRET_KEY = "django-insecure-53p4(@5aj)gg&h-0)fs@w-rf2#0gfppi2&k-k4i0up5$^_wq*r"
 
